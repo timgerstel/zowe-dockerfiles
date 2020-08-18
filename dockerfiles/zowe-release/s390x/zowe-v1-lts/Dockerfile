@@ -1,4 +1,4 @@
-FROM loyaltyone/docker-slim-java-node
+FROM s390x/openjdk:8
 
 #ENV ZOWE_ZOSMF_HOST='zosmf.host.com'
 #ENV ZOWE_ZSS_HOST='zss.host.com'
