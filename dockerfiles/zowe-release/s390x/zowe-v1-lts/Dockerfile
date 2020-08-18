@@ -17,10 +17,10 @@ ENV ZOWE_ZOSMF_PORT='11443'
 ENV NODE_HOME='/usr/local'
 
 
-RUN apt-get update && \
-	apt-get install -y --no-install-recommends jq moreutils pax openjdk-8-jdk-headless mc wget && \
-	rm -rf /var/lib/apt/lists/* && \
-	apt-get clean;
+RUN apt-get update
+RUN apt-get install -y --no-install-recommends jq moreutils pax openjdk-8-jdk-headless mc wget
+RUN rm -rf /var/lib/apt/lists/*
+RUN apt-get clean;
 
 RUN mkdir /root/zowe
 RUN mkdir /root/zowe/zowe-install
