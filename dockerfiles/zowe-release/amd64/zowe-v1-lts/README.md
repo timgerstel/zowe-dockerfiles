@@ -35,8 +35,8 @@ docker run -it \
     rsqa/zowe-v1-lts:amd64
 ```
 Open browser and test it
- - API Mediation Layer: https://myhost.acme.net:60004
- - ZAF: https://myhost.acme.net:60014
+ - API Mediation Layer: https://myhost.acme.net:7554
+ - App Framework: https://myhost.acme.net:8544
 
 ## Building docker image
 ### Building docker image on Linux
@@ -45,7 +45,7 @@ For example, with an intel linux machine, to build v1 LTS you can execute:
 ```sh
 cd dockerfiles/zowe-release/amd64/zowe-v1-lts
 mkdir utils
-cp ../../../../utils/* ./utils
+cp -r ../../../../utils/* ./utils
 docker build -t zowe/docker:latest .
 ```
 
@@ -68,7 +68,10 @@ docker build -t zowe/docker:latest .
    - `ZOSMF_PORT=<zosmf_port>` - z/OSMF port eg (1443)
    - `ZWED_agent_host=<zss_hostname>` - ZSS host (eg mf.acme.net)
    - `ZWED_agent_http_port=<zss_port>` - ZSS port z/OSMF port eg (60012)
-   - `source=<folder with certs>` - folder where you have your certs
+   - `source=<folder with certs>,target=<target dir within image>` - local folder containing external certs, and their target dir in the image (optional)
+   - `EXTERNAL_CERTIFICATE=<keystore.p12>` - location of p12 keystore. (optional)
+   - `EXTERNAL_CERTIFICATE_ALIAS=<alias>` - valid alias within keystore. (optional)
+   - `EXTERNAL_CERTIFICATE_AUTHORITIES=<CA.cer>` - location of x509 Certificate Authority (optional)
    - `LAUNCH_COMPONENT_GROUPS=<DESKTOP or GATEWAY>` - what do you want to start
      - DESKTOP - only desktop
      - GATEWAY - only GATEWAY + explorers
@@ -77,8 +80,9 @@ docker build -t zowe/docker:latest .
 For example:
 
 ```cmd
-DISCOVERY_PORT=7553 GATEWAY_PORT=7554 APP_SERVER_PORT=8544 docker run -it -h your_hostname --env ZOWE_IP_ADDRESS=your.external.ip --env LAUNCH_COMPONENT_GROUPS=DESKTOP,GATEWAY --env ZOSMF_HOST=your.zosmainframe.com --env ZWED_agent_host=your.zosmainframe.com --env ZOSMF_PORT=11443 --env ZWED_agent_http_port=8542 --expose ${DISCOVERY_PORT} --expose ${GATEWAY_PORT} --expose ${APP_SERVER_PORT} -p ${DISCOVERY_PORT}:${DISCOVERY_PORT} -p ${GATEWAY_PORT}:${GATEWAY_PORT} -p ${APP_SERVER_PORT}:${APP_SERVER_PORT} --env GATEWAY_PORT=${GATEWAY_PORT} --env DISCOVERY_PORT=${DISCOVERY_PORT} --env ZOWE_ZLUX_SERVER_HTTPS_PORT=${APP_SERVER_PORT} --mount type=bind,source=<folder with certs>,target=/root/zowe/certs rsqa/zowe-v1-lts:amd64
+DISCOVERY_PORT=7553 GATEWAY_PORT=7554 APP_SERVER_PORT=8544 docker run -it -h your_hostname --env ZOWE_IP_ADDRESS=your.external.ip --env LAUNCH_COMPONENT_GROUPS=DESKTOP,GATEWAY --env ZOSMF_HOST=your.zosmainframe.com --env ZWED_agent_host=your.zosmainframe.com --env ZOSMF_PORT=11443 --env ZWED_agent_http_port=8542 --expose ${DISCOVERY_PORT} --expose ${GATEWAY_PORT} --expose ${APP_SERVER_PORT} -p ${DISCOVERY_PORT}:${DISCOVERY_PORT} -p ${GATEWAY_PORT}:${GATEWAY_PORT} -p ${APP_SERVER_PORT}:${APP_SERVER_PORT} --env GATEWAY_PORT=${GATEWAY_PORT} --env DISCOVERY_PORT=${DISCOVERY_PORT} --env ZOWE_ZLUX_SERVER_HTTPS_PORT=${APP_SERVER_PORT} --env EXTERNAL_CERTIFICATE=/root/zowe/ext_certs/my.keystore.p12 --env EXTERNAL_CERTIFICATE_ALIAS=alias --env EXTERNAL_CERTIFICATE_AUTHORITIES=/root/zowe/ext_certs/myCA.cer --mount type=bind,source=<folder with certs>,target=/root/zowe/ext_certs rsqa/zowe-v1-lts:amd64
 ```
+Note: External certificates are optional and should not be included in the start command if undesired.
 
 If you want to 
  - use it with different z/OSMF and ZSS change `ZOWE_ZOSMF_xxx` and `ZOWE_ZSS_xxx`
@@ -114,24 +118,24 @@ set APP_SERVER_PORT=8544
 
 #add non-default settings with --env, using same properties as seen in instance.env
 #   --env ZOWE_ZLUX_TELNET_PORT=23
-docker run -it \
-    -h your_hostname \
-    --env ZOWE_IP_ADDRESS=your.external.ip \
-    --env LAUNCH_COMPONENT_GROUPS=DESKTOP,GATEWAY \
-    --env ZOSMF_HOST=your.zosmainframe.com \
-    --env ZWED_agent_host=your.zosmainframe.com \
-    --env ZOSMF_PORT=11443 \
-    --env ZWED_agent_http_port=8542 \
-    --expose %DISCOVERY_PORT% \
-    --expose %GATEWAY_PORT% \
-    --expose %APP_SERVER_PORT% \
-    -p %DISCOVERY_PORT%:%DISCOVERY_PORT% \
-    -p %GATEWAY_PORT%:${GATEWAY_PORT% \
-    -p %APP_SERVER_PORT%:%APP_SERVER_PORT% \
-    --env GATEWAY_PORT=%GATEWAY_PORT% \
-    --env DISCOVERY_PORT=%DISCOVERY_PORT% \
-    --env ZOWE_ZLUX_SERVER_HTTPS_PORT=%APP_SERVER_PORT% \
-    --mount type=bind,c:\workspaces\ZooTainers-Hackathon2019\certs,target=/root/zowe/certs\
+docker run -it ^
+    -h your_hostname ^
+    --env ZOWE_IP_ADDRESS=your.external.ip ^
+    --env LAUNCH_COMPONENT_GROUPS=DESKTOP,GATEWAY ^
+    --env ZOSMF_HOST=your.zosmainframe.com ^
+    --env ZWED_agent_host=your.zosmainframe.com ^
+    --env ZOSMF_PORT=11443 ^
+    --env ZWED_agent_http_port=8542 ^
+    --expose %DISCOVERY_PORT% ^
+    --expose %GATEWAY_PORT% ^
+    --expose %APP_SERVER_PORT% ^
+    -p %DISCOVERY_PORT%:%DISCOVERY_PORT% ^
+    -p %GATEWAY_PORT%:%GATEWAY_PORT% ^
+    -p %APP_SERVER_PORT%:%APP_SERVER_PORT% ^
+    --env GATEWAY_PORT=%GATEWAY_PORT% ^
+    --env DISCOVERY_PORT=%DISCOVERY_PORT% ^
+    --env ZOWE_ZLUX_SERVER_HTTPS_PORT=%APP_SERVER_PORT% ^
+    --mount type=bind,c:\workspaces\ZooTainers-Hackathon2019\certs,target=/root/zowe/certs ^
     rsqa/zowe-v1-lts:amd64
 ```
 
@@ -171,9 +175,9 @@ put something here
 
 ## Test it
 Open browser and test it
- - API Mediation Layer: https://mf.acme.net:60004
- - API ML Discovery Service: https://mf.acme.net:60003/
- - ZAF: https://mf.acme.net:60014
+ - API Mediation Layer: https://mf.acme.net:7554
+ - API ML Discovery Service: https://mf.acme.net:7553/
+ - App Framework: https://mf.acme.net:8544
 
 ## Using Zowe's Docker with Zowe products & plugins
 To use Zowe-based software with the docker container, you must make that software visible to the Zowe that is within Docker by mapping a folder on your host machine to a folder visible within the docker container.
@@ -210,8 +214,10 @@ docker run -it \
     rsqa/zowe-v1-lts:amd64 $@
 ```
 
-Afterward, these plugins must be installed to the app server. Simply ssh into the docker container to run the install-app.sh script, like so:
-```docker exec -it [CONTAINER_ID] /root/zowe/instance/bin/install-app.sh ../../apps/[APPLICATION]```
+By default, external plugins in the ```/root/zowe/apps``` folder will be installed at start up.
+
+To install other plugins to the app server simply ssh into the docker container to run the install-app.sh script, like so:
+```docker exec -it [CONTAINER_ID] /root/zowe/instance/bin/install-app.sh [APPLICATION_DIR]```
 If the script returns with rc=0, then the plugin install succeded and the plugin can be used by refreshing the app server via either clicking "Refresh Applications" in the launchbar menu of the Zowe Desktop, or by doing an HTTP GET call to /plugins?refresh=true to the app server.
 
 
